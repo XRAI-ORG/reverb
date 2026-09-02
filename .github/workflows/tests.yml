@@ -31,6 +31,7 @@ jobs:
       matrix:
         php: [8.2, 8.3, 8.4, 8.5]
         laravel: [10, 11, 12, 13]
+        dependencies: [lowest, highest]
         exclude:
           - php: 8.5
             laravel: 10
@@ -41,7 +42,7 @@ jobs:
           - php: 8.2
             laravel: 13
 
-    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - ${{ matrix.dependencies }}
 
     steps:
       - name: Checkout code
@@ -60,7 +61,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer update --prefer-dist --no-interaction --no-progress --with="laravel/framework:^${{ matrix.laravel }}"
+          composer update --prefer-dist --no-interaction --no-progress \
+            ${{ matrix.dependencies == 'lowest' && '--prefer-lowest' || '' }} \
+            --with="laravel/framework:^${{ matrix.laravel }}"
 
       - name: Execute tests
         run: vendor/bin/pest
