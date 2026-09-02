@@ -5,6 +5,8 @@
 * Require React Promise 3 because Reverb uses its `finally` API, and exercise
   both lowest and highest dependency bounds across the supported PHP and
   Laravel matrix.
+* Expose the installed fork version and source reference as non-secret health
+  response headers so rolling deployments can reject mixed runtime builds.
 
 ## [v1.11.1-xrai.1](https://github.com/XRAI-ORG/reverb/compare/v1.11.1...v1.11.1-xrai.1) - 2026-09-02
 
