@@ -70,7 +70,9 @@ class StartServer extends Command implements SignalableCommandInterface
 
         $this->ensureHorizontalScalability($loop);
         $this->ensureStaleConnectionsAreCleaned($loop);
-        $this->ensureRestartCommandIsRespected($server, $loop, $host, $port);
+        if (($config['restart_polling'] ?? true) === true) {
+            $this->ensureRestartCommandIsRespected($server, $loop, $host, $port);
+        }
         $this->ensurePulseEventsAreCollected($loop, $config['pulse_ingest_interval']);
         $this->ensureTelescopeEntriesAreCollected($loop, $config['telescope_ingest_interval'] ?? 15);
 

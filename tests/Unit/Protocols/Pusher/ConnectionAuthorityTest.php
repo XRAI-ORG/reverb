@@ -8,6 +8,7 @@ use Laravel\Reverb\Protocols\Pusher\Contracts\ConnectionAuthorityRegistry;
 use Laravel\Reverb\Protocols\Pusher\PusherPubSubIncomingMessageHandler;
 use Laravel\Reverb\Protocols\Pusher\Server;
 use Laravel\Reverb\Tests\FakeConnection;
+use React\EventLoop\Loop;
 
 beforeEach(function () {
     $this->authorityApplication = new Application(
@@ -329,4 +330,36 @@ it('accepts only signed scaled lease controls for the matching application', fun
     ], JSON_THROW_ON_ERROR));
     expect(app(ConnectionAuthorityRegistry::class)->authority($connection)?->revision)
         ->toBe(2);
+});
+
+it('reschedules local expiry after a signed scaled lease update', function () {
+    $connection = new FakeConnection;
+    $this->server->open($connection);
+    $principal = 'principal_abcdefghijklmnopqrstuvwxyz012345';
+    $generation = 'authority_abcdefghijklmnopqrstuvwxyz012345';
+    $this->server->message($connection, authoritySignin(
+        $connection,
+        authorityUserData($principal, $generation),
+    ));
+    $payload = [
+        'principal' => $principal,
+        'authority' => $generation,
+        'revision' => 2,
+        'expires_at' => time() + 1,
+    ];
+
+    (new PusherPubSubIncomingMessageHandler)->handle(json_encode([
+        'type' => 'authority_lease',
+        'application' => serialize($this->authorityApplication),
+        'payload' => $payload,
+        'control_signature' => ConnectionAuthorityControlSignature::sign(
+            $this->authorityApplication,
+            'authority_lease',
+            $payload,
+        ),
+    ], JSON_THROW_ON_ERROR));
+    Loop::addTimer(1.25, static fn () => Loop::stop());
+    Loop::run();
+
+    $connection->assertHasBeenTerminated();
 });

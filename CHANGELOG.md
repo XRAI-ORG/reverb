@@ -1,6 +1,17 @@
 # Release Notes
 
-## [Unreleased](https://github.com/XRAI-ORG/reverb/compare/v1.11.1-xrai.2...main)
+## [Unreleased](https://github.com/XRAI-ORG/reverb/compare/v1.11.1-xrai.3...main)
+
+## [v1.11.1-xrai.3](https://github.com/XRAI-ORG/reverb/compare/v1.11.1-xrai.2...v1.11.1-xrai.3) - 2026-09-03
+
+Composer installs this release through the equivalent `v1.11.1-patch3` tag.
+
+* Allow supervisor-managed deployments to disable the synchronous cache poll
+  used by `reverb:restart`, so a cache outage cannot stall connection lease
+  expiry timers on the socket event loop.
+* Report the number of locally matched connections in direct lease-update
+  responses and cover shortened deadlines through the live HTTP/WebSocket
+  server boundary and the scaled control handler.
 
 ## [v1.11.1-xrai.2](https://github.com/XRAI-ORG/reverb/compare/v1.11.1-xrai.1...v1.11.1-xrai.2) - 2026-09-03
 

@@ -61,7 +61,7 @@ final class ConnectionLeaseController extends Controller
                 ),
             ])->then(fn () => new Response((object) []));
         }
-        app(ConnectionAuthorityRegistry::class)->updateLease(
+        $updated = app(ConnectionAuthorityRegistry::class)->updateLease(
             $this->application,
             $payload['principal'],
             $payload['authority'],
@@ -69,6 +69,6 @@ final class ConnectionLeaseController extends Controller
             $payload['expires_at'],
         );
 
-        return new Response((object) []);
+        return new Response(['connections_updated' => $updated]);
     }
 }

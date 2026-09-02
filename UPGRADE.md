@@ -2,8 +2,8 @@
 
 ## XRAI maintained fork
 
-Require the Composer-compatible `v1.11.1-patch1` tag for the
-`v1.11.1-xrai.1` maintained release.
+Require the Composer-compatible `v1.11.1-patch3` tag for the
+`v1.11.1-xrai.3` maintained release.
 
 Applications that require connection authority set
 `options.xrai_connection_authority` to `true` for the Reverb application and
@@ -17,6 +17,16 @@ standard authenticated Pusher HTTP API. Lease updates use
 `POST /apps/{appId}/xrai/connection-leases`; revocation uses the standard user
 termination route with the opaque connection principal as `{userId}`. Scaled
 servers apply the same signed controls through Redis pub/sub.
+
+Direct, unscaled lease updates return the number of matching connections in
+`connections_updated`. Scaled updates acknowledge publication because each
+node applies the command independently.
+
+Deployments that restart Reverb through a process supervisor or container
+orchestrator should set `REVERB_RESTART_POLLING=false`. This prevents the
+framework cache used by `reverb:restart` from blocking the socket event loop
+during an outage. Leave polling enabled when the cache-backed
+`reverb:restart` command is the deployment's process-control mechanism.
 
 Enabling this option requires a compatible user-auth endpoint and lease-control
 client. Applications that do not enable it retain the upstream channel,
