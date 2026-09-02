@@ -7,9 +7,11 @@ use Laravel\Reverb\Certificate;
 use Laravel\Reverb\Contracts\ApplicationProvider;
 use Laravel\Reverb\Protocols\Pusher\Contracts\ChannelConnectionManager;
 use Laravel\Reverb\Protocols\Pusher\Contracts\ChannelManager;
+use Laravel\Reverb\Protocols\Pusher\Contracts\ConnectionAuthorityRegistry;
 use Laravel\Reverb\Protocols\Pusher\Http\Controllers\ChannelController;
 use Laravel\Reverb\Protocols\Pusher\Http\Controllers\ChannelsController;
 use Laravel\Reverb\Protocols\Pusher\Http\Controllers\ChannelUsersController;
+use Laravel\Reverb\Protocols\Pusher\Http\Controllers\ConnectionLeaseController;
 use Laravel\Reverb\Protocols\Pusher\Http\Controllers\ConnectionsController;
 use Laravel\Reverb\Protocols\Pusher\Http\Controllers\EventsBatchController;
 use Laravel\Reverb\Protocols\Pusher\Http\Controllers\EventsController;
@@ -18,6 +20,7 @@ use Laravel\Reverb\Protocols\Pusher\Http\Controllers\PusherController;
 use Laravel\Reverb\Protocols\Pusher\Http\Controllers\UsersTerminateController;
 use Laravel\Reverb\Protocols\Pusher\Managers\ArrayChannelConnectionManager;
 use Laravel\Reverb\Protocols\Pusher\Managers\ArrayChannelManager;
+use Laravel\Reverb\Protocols\Pusher\Managers\ArrayConnectionAuthorityRegistry;
 use Laravel\Reverb\Protocols\Pusher\PusherPubSubIncomingMessageHandler;
 use Laravel\Reverb\Protocols\Pusher\Server as PusherServer;
 use Laravel\Reverb\Servers\Reverb\Contracts\PubSubIncomingMessageHandler;
@@ -81,6 +84,11 @@ class Factory
         );
 
         app()->singletonIf(
+            ConnectionAuthorityRegistry::class,
+            fn () => new ArrayConnectionAuthorityRegistry(Loop::get()),
+        );
+
+        app()->singletonIf(
             PubSubIncomingMessageHandler::class,
             fn () => new PusherPubSubIncomingMessageHandler,
         );
@@ -103,6 +111,7 @@ class Factory
         $routes->add('channel', Route::get('/apps/{appId}/channels/{channel}', new ChannelController));
         $routes->add('channel_users', Route::get('/apps/{appId}/channels/{channel}/users', new ChannelUsersController));
         $routes->add('users_terminate', Route::post('/apps/{appId}/users/{userId}/terminate_connections', new UsersTerminateController));
+        $routes->add('connection_lease', Route::post('/apps/{appId}/xrai/connection-leases', new ConnectionLeaseController));
         $routes->add('health_check', Route::get('/up', new HealthCheckController));
 
         $routes->addPrefix($path);

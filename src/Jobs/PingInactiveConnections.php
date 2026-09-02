@@ -6,6 +6,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Laravel\Reverb\Contracts\ApplicationProvider;
 use Laravel\Reverb\Loggers\Log;
 use Laravel\Reverb\Protocols\Pusher\Contracts\ChannelManager;
+use Laravel\Reverb\Protocols\Pusher\Contracts\ConnectionAuthorityRegistry;
 use Laravel\Reverb\Protocols\Pusher\EventHandler;
 
 class PingInactiveConnections
@@ -19,7 +20,10 @@ class PingInactiveConnections
     {
         Log::info('Pinging Inactive Connections');
 
-        $pusher = new EventHandler($channels);
+        $pusher = new EventHandler(
+            $channels,
+            app(ConnectionAuthorityRegistry::class),
+        );
 
         app(ApplicationProvider::class)
             ->all()

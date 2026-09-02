@@ -7,8 +7,11 @@ use Laravel\Pulse\Pulse;
 use Laravel\Reverb\Console\Commands\InstallCommand;
 use Laravel\Reverb\Contracts\Logger;
 use Laravel\Reverb\Loggers\NullLogger;
+use Laravel\Reverb\Protocols\Pusher\Contracts\ConnectionAuthorityRegistry;
+use Laravel\Reverb\Protocols\Pusher\Managers\ArrayConnectionAuthorityRegistry;
 use Laravel\Reverb\Pulse\Livewire;
 use Livewire\LivewireManager;
+use React\EventLoop\Loop;
 
 class ReverbServiceProvider extends ServiceProvider
 {
@@ -24,6 +27,10 @@ class ReverbServiceProvider extends ServiceProvider
         $this->app->instance(Logger::class, new NullLogger);
 
         $this->app->singleton(ServerProviderManager::class);
+        $this->app->singleton(
+            ConnectionAuthorityRegistry::class,
+            fn () => new ArrayConnectionAuthorityRegistry(Loop::get()),
+        );
 
         $this->app->make(ServerProviderManager::class)->register();
 

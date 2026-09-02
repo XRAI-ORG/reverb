@@ -61,6 +61,14 @@ class ConfigApplicationProvider implements ApplicationProvider
             throw new InvalidApplication;
         }
 
+        $options = $app['options'] ?? [];
+        if (! is_array($options)) {
+            $options = [];
+        }
+        if (array_key_exists('allowed_client_events', $app)) {
+            $options['allowed_client_events'] = $app['allowed_client_events'];
+        }
+
         return new Application(
             $app['app_id'],
             $app['key'],
@@ -73,7 +81,7 @@ class ConfigApplicationProvider implements ApplicationProvider
             // If no setting is provided, default to allowing all client events...
             $app['accept_client_events_from'] ?? 'all',
             $app['rate_limiting'] ?? null,
-            $app['options'] ?? [],
+            $options,
         );
     }
 }

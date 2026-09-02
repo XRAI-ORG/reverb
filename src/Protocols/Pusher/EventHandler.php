@@ -5,19 +5,28 @@ namespace Laravel\Reverb\Protocols\Pusher;
 use Exception;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
+use JsonException;
 use Laravel\Reverb\Contracts\Connection;
 use Laravel\Reverb\Protocols\Pusher\Channels\CacheChannel;
 use Laravel\Reverb\Protocols\Pusher\Channels\Channel;
 use Laravel\Reverb\Protocols\Pusher\Contracts\ChannelManager;
+use Laravel\Reverb\Protocols\Pusher\Contracts\ConnectionAuthorityRegistry;
+use Laravel\Reverb\Protocols\Pusher\Exceptions\ConnectionUnauthorized;
 
 class EventHandler
 {
+    protected ConnectionAuthorityRegistry $connectionAuthorities;
+
     /**
      * Create a new Pusher event instance.
      */
-    public function __construct(protected ChannelManager $channels)
-    {
-        //
+    public function __construct(
+        protected ChannelManager $channels,
+        ?ConnectionAuthorityRegistry $connectionAuthorities = null,
+    ) {
+        $this->connectionAuthorities = $connectionAuthorities
+            ?? app(ConnectionAuthorityRegistry::class);
     }
 
     /**
@@ -29,6 +38,11 @@ class EventHandler
 
         match ($event) {
             'connection_established' => $this->acknowledge($connection),
+            'signin' => $this->signin(
+                $connection,
+                $payload['auth'] ?? null,
+                $payload['user_data'] ?? null,
+            ),
             'subscribe' => $this->subscribe(
                 $connection,
                 $payload['channel'],
@@ -68,6 +82,15 @@ class EventHandler
             'channel_data' => ['nullable', 'json'],
         ])->validate();
 
+        if ($connection->app()->requiresConnectionAuthority() && $this->protectedChannel($channel)) {
+            $authority = $this->connectionAuthorities->authority($connection);
+            if (! $authority instanceof ConnectionAuthority
+                || (str_starts_with($channel, '#server-to-user-')
+                    && ! hash_equals('#server-to-user-'.$authority->principal, $channel))) {
+                throw new ConnectionUnauthorized;
+            }
+        }
+
         $channel = $this->channels
             ->for($connection->app())
             ->findOrCreate($channel);
@@ -77,11 +100,55 @@ class EventHandler
         $this->afterSubscribe($channel, $connection);
     }
 
+    public function signin(Connection $connection, mixed $auth, mixed $userData): void
+    {
+        if (! is_string($auth) || ! is_string($userData)) {
+            throw new ConnectionUnauthorized;
+        }
+        $parts = explode(':', $auth, 2);
+        if (count($parts) !== 2 || ! hash_equals($connection->app()->key(), $parts[0])) {
+            throw new ConnectionUnauthorized;
+        }
+        $expected = hash_hmac(
+            'sha256',
+            $connection->id().'::user::'.$userData,
+            $connection->app()->secret(),
+        );
+        if (! hash_equals($expected, $parts[1])) {
+            throw new ConnectionUnauthorized;
+        }
+        try {
+            $authority = ConnectionAuthority::fromUserData($userData);
+            $authority = $this->connectionAuthorities->authenticate($connection, $authority);
+        } catch (InvalidArgumentException|JsonException) {
+            throw new ConnectionUnauthorized;
+        }
+
+        $this->send($connection, 'signin_success', [
+            'user_data' => $authority->normalizedUserData,
+        ]);
+    }
+
+    private function protectedChannel(string $channel): bool
+    {
+        return Str::startsWith($channel, [
+            'private-',
+            'presence-',
+            '#server-to-user-',
+        ]);
+    }
+
     /**
      * Carry out any actions that should be performed after a subscription.
      */
     protected function afterSubscribe(Channel $channel, Connection $connection): void
     {
+        if ($connection->app()->requiresConnectionAuthority()
+            && $channel->isProtected()
+            && ! $this->connectionAuthorities->permitsProtectedTraffic($connection)) {
+            $channel->unsubscribe($connection);
+            throw new ConnectionUnauthorized;
+        }
         $this->sendInternally($connection, 'subscription_succeeded', $channel->data(), $channel->name());
 
         match (true) {

@@ -10,6 +10,7 @@ use Laravel\Reverb\Contracts\Connection;
 use Laravel\Reverb\Events\MessageReceived;
 use Laravel\Reverb\Loggers\Log;
 use Laravel\Reverb\Protocols\Pusher\Contracts\ChannelManager;
+use Laravel\Reverb\Protocols\Pusher\Contracts\ConnectionAuthorityRegistry;
 use Laravel\Reverb\Protocols\Pusher\Exceptions\ConnectionLimitExceeded;
 use Laravel\Reverb\Protocols\Pusher\Exceptions\InvalidOrigin;
 use Laravel\Reverb\Protocols\Pusher\Exceptions\PusherException;
@@ -23,8 +24,11 @@ class Server
     /**
      * Create a new server instance.
      */
-    public function __construct(protected ChannelManager $channels, protected EventHandler $handler)
-    {
+    public function __construct(
+        protected ChannelManager $channels,
+        protected EventHandler $handler,
+        protected ConnectionAuthorityRegistry $connectionAuthorities,
+    ) {
         //
     }
 
@@ -36,6 +40,7 @@ class Server
         try {
             $this->ensureWithinConnectionLimit($connection);
             $this->verifyOrigin($connection);
+            $this->connectionAuthorities->register($connection);
 
             $connection->touch();
 
@@ -43,6 +48,7 @@ class Server
 
             Log::info('Connection Established', $connection->id());
         } catch (Exception $e) {
+            $this->connectionAuthorities->remove($connection);
             $this->error($connection, $e);
         }
     }
@@ -110,6 +116,7 @@ class Server
             ->unsubscribeFromAll($connection);
 
         $connection->disconnect();
+        $this->connectionAuthorities->remove($connection);
 
         Log::info('Connection Closed', $connection->id());
     }

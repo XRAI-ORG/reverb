@@ -129,6 +129,23 @@ class Application
         return $this->options;
     }
 
+    public function requiresConnectionAuthority(): bool
+    {
+        return ($this->options['xrai_connection_authority'] ?? false) === true;
+    }
+
+    public function allowsClientEvent(string $event): bool
+    {
+        if (! $this->requiresConnectionAuthority()) {
+            return true;
+        }
+        $allowed = $this->options['allowed_client_events'] ?? [];
+
+        return is_array($allowed)
+            && array_is_list($allowed)
+            && in_array($event, $allowed, true);
+    }
+
     /**
      * Convert the application to an array.
      *

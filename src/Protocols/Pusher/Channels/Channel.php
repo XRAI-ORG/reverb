@@ -2,11 +2,13 @@
 
 namespace Laravel\Reverb\Protocols\Pusher\Channels;
 
+use Illuminate\Support\Str;
 use Laravel\Reverb\Contracts\Connection;
 use Laravel\Reverb\Loggers\Log;
 use Laravel\Reverb\Protocols\Pusher\Concerns\SerializesChannels;
 use Laravel\Reverb\Protocols\Pusher\Contracts\ChannelConnectionManager;
 use Laravel\Reverb\Protocols\Pusher\Contracts\ChannelManager;
+use Laravel\Reverb\Protocols\Pusher\Contracts\ConnectionAuthorityRegistry;
 
 class Channel
 {
@@ -110,6 +112,12 @@ class Channel
                 continue;
             }
 
+            if ($connection->app()->requiresConnectionAuthority()
+                && $this->isProtected()
+                && ! app(ConnectionAuthorityRegistry::class)->permitsProtectedTraffic($connection->connection())) {
+                continue;
+            }
+
             $connection->send($message);
         }
     }
@@ -125,6 +133,11 @@ class Channel
         Log::message($message);
 
         foreach ($this->connections() as $connection) {
+            if ($connection->app()->requiresConnectionAuthority()
+                && $this->isProtected()
+                && ! app(ConnectionAuthorityRegistry::class)->permitsProtectedTraffic($connection->connection())) {
+                continue;
+            }
             $connection->send($message);
         }
     }
@@ -143,5 +156,14 @@ class Channel
     public function data(): array
     {
         return [];
+    }
+
+    public function isProtected(): bool
+    {
+        return Str::startsWith($this->name, [
+            'private-',
+            'presence-',
+            '#server-to-user-',
+        ]);
     }
 }

@@ -1,6 +1,19 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/reverb/compare/v1.11.1...main)
+## [Unreleased](https://github.com/XRAI-ORG/reverb/compare/v1.11.1-xrai.1...main)
+
+## [v1.11.1-xrai.1](https://github.com/XRAI-ORG/reverb/compare/v1.11.1...v1.11.1-xrai.1) - 2026-09-02
+
+* Upstream base: Laravel Reverb 1.11.1.
+* Add signed Pusher `pusher:signin` connection authentication with a strict,
+  namespaced opaque lease envelope.
+* Add application-scoped connection registries, protected subscription,
+  client-event, and delivery enforcement, exact deadline timers, principal
+  termination, and signed scaled lease updates.
+* Preserve upstream behavior for applications that do not enable connection
+  authority.
+* Verify signature compatibility, fail-closed expiry, application isolation,
+  scaled ordering, and opaque identifiers in the maintained-fork test suite.
 
 ## [v1.11.1](https://github.com/laravel/reverb/compare/v1.11.0...v1.11.1) - 2026-08-06
 
