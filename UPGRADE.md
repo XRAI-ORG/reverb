@@ -2,6 +2,9 @@
 
 ## XRAI maintained fork
 
+Require the Composer-compatible `v1.11.1-patch1` tag for the
+`v1.11.1-xrai.1` maintained release.
+
 Applications that require connection authority set
 `options.xrai_connection_authority` to `true` for the Reverb application and
 set `options.allowed_client_events` to the exact list of permitted client event

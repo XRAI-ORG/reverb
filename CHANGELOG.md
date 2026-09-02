@@ -4,6 +4,9 @@
 
 ## [v1.11.1-xrai.1](https://github.com/XRAI-ORG/reverb/compare/v1.11.1...v1.11.1-xrai.1) - 2026-09-02
 
+Composer installs this release through the equivalent `v1.11.1-patch1` tag,
+because Composer accepts `patch` but not custom prerelease stability names.
+
 * Upstream base: Laravel Reverb 1.11.1.
 * Add signed Pusher `pusher:signin` connection authentication with a strict,
   namespaced opaque lease envelope.
