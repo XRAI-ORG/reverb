@@ -2,7 +2,6 @@
 
 namespace Laravel\Reverb\Protocols\Pusher\Http\Controllers;
 
-use Laravel\Reverb\BuildIdentity;
 use Laravel\Reverb\Servers\Reverb\Http\Connection;
 use Laravel\Reverb\Servers\Reverb\Http\Response;
 use Psr\Http\Message\RequestInterface;
@@ -14,9 +13,6 @@ class HealthCheckController extends Controller
      */
     public function __invoke(RequestInterface $request, Connection $connection): Response
     {
-        return new Response((object) ['health' => 'OK'], headers: [
-            'X-Reverb-Version' => BuildIdentity::version(),
-            'X-Reverb-Reference' => BuildIdentity::reference(),
-        ]);
+        return new Response((object) ['health' => 'OK']);
     }
 }

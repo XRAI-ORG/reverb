@@ -17,6 +17,6 @@ it('can respond to a health check request', function () {
     expect($response->getStatusCode())->toBe(200);
     expect($response->getBody()->getContents())->toBe('{"health":"OK"}');
     expect($response->getHeader('Content-Length'))->toBe(['15']);
-    expect($response->getHeaderLine('X-Reverb-Version'))->not->toBeEmpty();
-    expect($response->getHeaderLine('X-Reverb-Reference'))->not->toBeEmpty();
+    expect($response->hasHeader('X-Reverb-Version'))->toBeFalse();
+    expect($response->hasHeader('X-Reverb-Reference'))->toBeFalse();
 });
