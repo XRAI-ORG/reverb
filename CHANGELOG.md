@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/XRAI-ORG/reverb/compare/v1.11.1-xrai.3...main)
+## [Unreleased](https://github.com/XRAI-ORG/reverb/compare/v1.11.1-xrai.4...main)
+
+## [v1.11.1-xrai.4](https://github.com/XRAI-ORG/reverb/compare/v1.11.1-xrai.3...v1.11.1-xrai.4) - 2026-10-08
+
+Composer installs this release through the equivalent `v1.11.1-patch4` tag.
 
 * Stop sending the fork version and source reference as health response
   headers, so the public health check no longer identifies the server
