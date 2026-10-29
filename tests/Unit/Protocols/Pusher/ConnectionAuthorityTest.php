@@ -157,6 +157,32 @@ it('rejects malformed signed lease data and guessed server user channels', funct
     ]);
 });
 
+it('rejects public channel subscriptions without retaining the channel', function () {
+    $connection = new FakeConnection;
+    $this->server->open($connection);
+    $unauthorized = [
+        'event' => 'pusher:error',
+        'data' => json_encode(['code' => 4009, 'message' => 'Connection is unauthorized']),
+    ];
+
+    $this->server->message($connection, json_encode([
+        'event' => 'pusher:subscribe',
+        'data' => ['channel' => 'public-before-signin'],
+    ], JSON_THROW_ON_ERROR));
+    $connection->assertReceived($unauthorized);
+
+    $this->server->message($connection, authoritySignin($connection, authorityUserData()));
+    foreach (['public-after-signin', 'cache-public-after-signin'] as $channel) {
+        $this->server->message($connection, json_encode([
+            'event' => 'pusher:subscribe',
+            'data' => ['channel' => $channel],
+        ], JSON_THROW_ON_ERROR));
+        $connection->assertReceived($unauthorized);
+    }
+
+    expect(channels($this->authorityApplication)->all())->toBe([]);
+});
+
 it('applies only newer matching leases and terminates at an earlier deadline', function () {
     $connection = new FakeConnection;
     $this->server->open($connection);

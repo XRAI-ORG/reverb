@@ -82,7 +82,10 @@ class EventHandler
             'channel_data' => ['nullable', 'json'],
         ])->validate();
 
-        if ($connection->app()->requiresConnectionAuthority() && $this->protectedChannel($channel)) {
+        if ($connection->app()->requiresConnectionAuthority()) {
+            if (! $this->protectedChannel($channel)) {
+                throw new ConnectionUnauthorized;
+            }
             $authority = $this->connectionAuthorities->authority($connection);
             if (! $authority instanceof ConnectionAuthority
                 || (str_starts_with($channel, '#server-to-user-')

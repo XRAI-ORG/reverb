@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/XRAI-ORG/reverb/compare/v1.11.1-xrai.4...main)
+## [Unreleased](https://github.com/XRAI-ORG/reverb/compare/v1.11.1-patch5...main)
+
+## [v1.11.1-patch5](https://github.com/XRAI-ORG/reverb/compare/v1.11.1-patch4...v1.11.1-patch5) - 2026-10-29
+
+* Reject public channel subscriptions for applications that require
+  connection authority, before the channel is created, so a client holding
+  the public application key cannot retain unlimited distinct channels.
 
 ## [v1.11.1-xrai.4](https://github.com/XRAI-ORG/reverb/compare/v1.11.1-xrai.3...v1.11.1-xrai.4) - 2026-10-08
 
